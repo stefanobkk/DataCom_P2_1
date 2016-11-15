@@ -4,6 +4,7 @@ import spark.Route;
 import static spark.Spark.*;
 import com.google.gson.Gson;
 
+import java.util.Date;
 import java.util.List;
 
 public class ServerMain {
@@ -26,6 +27,7 @@ public class ServerMain {
         get("/stopCount/:stationId", handleGetStopCount(model));
     }
 
+
     private static Route handleGetStopCount(DataModel model) {
         return (request, response) -> {
             String stationId = request.params("stationId");
@@ -42,8 +44,10 @@ public class ServerMain {
         };
     }
 
+    //We return the list of all the station_ID that the parcel_ID has gone too.
     private static Route handleGetParcelTrail(DataModel model) {
         return (request, response) -> {
+
             String parcelId = request.params("parcelId");
             if (null != parcelId && parcelId.length()>0) {
                 List<DataModel.ParcelObserved> trail = model.getParcelTrail(parcelId);
@@ -61,13 +65,16 @@ public class ServerMain {
         };
     }
 
+
     private static Route handlePostObserve(DataModel model) {
         return (request, response) -> {
             String parcelId = request.headers("parcelId");
             String stationId = request.headers("stationId");
             String timestampStr = request.headers("timestamp");
             Long timestamp = null;
-            try { timestamp = Long.parseLong(timestampStr); }
+            try {
+                timestamp = Long.parseLong(timestampStr);
+            }
             catch (NumberFormatException e) {
                 halt(400, "Invalid timestamp.");
             }
@@ -80,4 +87,5 @@ public class ServerMain {
             return "OK";
         };
     }
+
 }
