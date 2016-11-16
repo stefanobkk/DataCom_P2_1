@@ -43,22 +43,42 @@ public class DataModel {
         station_hash = new ConcurrentHashMap<>();
     }
 
-    public synchronized void postObserve(String parcelId, String stationId, long timestamp) {
+    public void postObserve(String parcelId, String stationId, long timestamp) {
         ParcelObserved parcelObserved = new ParcelObserved(parcelId, stationId, timestamp);
         //transactions.add(parcelObserved);
 
         if (trail_hash.containsKey(parcelId) == false) {
-            ArrayList<ParcelObserved> list1 = new ArrayList<ParcelObserved>();
-            list1.add(parcelObserved);
-            trail_hash.put(parcelId, list1);
+           synchronized (this) {
+               if (trail_hash.containsKey(parcelId) == false) {
+                   ArrayList<ParcelObserved> list1 = new ArrayList<ParcelObserved>();
+                   list1.add(parcelObserved);
+                   trail_hash.put(parcelId, list1);
+               }else{
+
+
+                   trail_hash.get(parcelId).add(parcelObserved);
+
+               }
+           }
+
         } else {
-            List<ParcelObserved> a = trail_hash.get(parcelId);
-            a.add(parcelObserved);
-            trail_hash.put(parcelId, a);
+
+//            List<ParcelObserved> a = trail_hash.get(parcelId);
+//            a.add(parcelObserved);
+//            synchronized (this) {
+//                trail_hash.put(parcelId, a);
+//            }
+
+            //a.add(parcelObserved);
+
+            trail_hash.get(parcelId).add(parcelObserved);
+
         }
         if (station_hash.containsKey(stationId) == false) {
-            AtomicInteger counter = new AtomicInteger(1);
-            station_hash.put(stationId, counter);
+            synchronized (this) {
+                AtomicInteger counter = new AtomicInteger(1);
+                station_hash.put(stationId, counter);
+            }
         } else {
             station_hash.get(stationId).getAndAdd(1);
         }
